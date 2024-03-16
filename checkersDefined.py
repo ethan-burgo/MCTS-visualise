@@ -4,6 +4,8 @@ import torch
 import torch.nn as nn
 import copy
 
+# change
+
 def random_player(other_team, current_board, last_move=None):
     players = ["blue", "red"]
     for player in players:
