@@ -4,8 +4,6 @@ import torch
 import torch.nn as nn
 import copy
 
-# change
-
 def random_player(other_team, current_board, last_move=None):
     players = ["blue", "red"]
     for player in players:
@@ -434,7 +432,7 @@ def select(node):
 
     return node
 
-def expand(node):
+def expand(node, board):
     new_board = node.state.copy()
     moves = board.move_option("red")
 
@@ -530,7 +528,7 @@ print(board)
 
 
 
-def play_against_mcts(board, iterations):
+def play_against_mcts(board, mcts, iterations):
     turn = "blue"
     print(board.is_game_over(turn))
     while board.is_game_over(turn) == None:
@@ -555,7 +553,7 @@ def play_against_mcts(board, iterations):
                 print("REDS turn (MCTS): ")
                 mcts_board = board.copy()  # Create a copy for MCTS
                 print(mcts_board)
-                result_state = monte_carlo_tree_search(mcts_board, iterations)
+                result_state = mcts.monte_carlo_tree_search(mcts_board, iterations)
                 print(result_state)
                 # Apply the best move found by MCTS to the original board
                 print("huh")
@@ -603,7 +601,7 @@ def random_vs_mcts(board):
 
 # try with more iterations
 board = CheckersBoard()
-play_against_mcts(board, iterations=5000)
+#play_against_mcts(board, iterations=5000)
 
 #play_against_random(board)
 
