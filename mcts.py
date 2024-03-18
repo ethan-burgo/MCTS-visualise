@@ -1,5 +1,6 @@
 import math
 import random
+import uuid
 
 class Node:
     def __init__(self, state, move=None, parent=None):
@@ -9,13 +10,26 @@ class Node:
         self.value = 0
         self.parent = parent
         self.move = move
-    
+        self.id = uuid.uuid4()
+        self.parent_id = self.get_parent_id()
+        self.chosen = 0
+
+    def set_chosen(self):
+        self.chosen = 1
     def get_state(self):
         return self.state
+    
+    def get_id(self):
+        return self.id
+    
+    def get_parent_id(self):
+        if self.parent:
+            return self.parent.get_id()
 
 class MCTS_Checkers:
     def __init__(self, board):
         self.board = board
+        #self.start_time = 
         
     def select(self, node):
         while node.children:
@@ -33,6 +47,7 @@ class MCTS_Checkers:
 
     def expand(self, node, board):
         new_board = node.state
+        #print(node.move, node.get_id(), node.get_parent_id())
         moves = new_board.move_option("red")
 
         for move in moves:
@@ -42,6 +57,8 @@ class MCTS_Checkers:
                 new_board.make_move(move, p_moves)
                 new_board.check_elimination(move, p_moves)
                 new_node = Node(new_board, move=[move, p_moves], parent=node)
+                #TODO: Insert node, state into database
+                
                 node.children.append(new_node)
 
         if node.children:
@@ -67,9 +84,8 @@ class MCTS_Checkers:
         current_state = node.state.copy()  # Create a copy to avoid modifying the original state
         turn = "blue"
         last_move = None
+        
         while not current_state.is_terminal("red"):
-            #print("cool")
-            #print(current_state.display_board())
             if last_move:
                 potential_moves = current_state.move_option(turn, last_move)
             else:
@@ -112,4 +128,8 @@ class MCTS_Checkers:
                 self.backpropagate(expanded_node, simulation_result)
 
         best_child = max(root.children, key=lambda child: child.visits)
+        best_child.set_chosen()
+        print(best_child.get_id(), best_child.move, best_child.chosen)
+        # update node in database to set chosen to its value
         return best_child.move
+    

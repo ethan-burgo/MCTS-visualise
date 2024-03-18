@@ -4,31 +4,7 @@ import torch
 import torch.nn as nn
 import copy
 
-def random_player(other_team, current_board, last_move=None):
-    players = ["blue", "red"]
-    for player in players:
-        if other_team != player:
-            this_player = player
-    #print(this_player)
-    if not current_board.is_terminal(this_player):
-        if last_move:
-            move_option = current_board.move_option(this_player, last_move)
-        else:
-            move_option = current_board.move_option(this_player)
-        random_pos = random.choice(move_option)
-        potential_moves = current_board.get_potential_moves(random_pos)
-        while len(potential_moves) == 0:
-            random_pos = random.choice(current_board.move_option(this_player))
-            potential_moves = current_board.get_potential_moves(random_pos)
-        
-        move = random.choice(potential_moves)
-        current_board.make_move(random_pos, move)
-        #current_board.turn_to_king(move)
-        print("-----------------------------------")
 
-        current_board.display_board()
-        if current_board.check_elimination(random_pos, move):
-            random_player(other_team, current_board, move)
 
 class CheckersBoard:
     def __init__(self):
@@ -115,35 +91,28 @@ class CheckersBoard:
     def check_bad_moves(self, moves):
         cleaned_moves = []
         for move in moves:
-            if int(move) > 10 and int(move) < 100:
-                if str(move)[0] != "9" and str(move)[1] != "9":
-                    try:
-                        if self.squares[str(move)] == False:
-                            cleaned_moves.append(move)
-                    except Exception as e:
-                        pass
+            str_move = str(move)
+            if 10 < int(move) < 100 and str_move[0] != "9" and str_move[1] != "9" and not self.squares.get(str_move, True):
+                cleaned_moves.append(move)
         return cleaned_moves
+
     
     def check_can_jump(self, colour):
         all_chips = self.get_all_pos(colour) + self.get_all_pos("K" + colour)
-        #print(all_chips)
         can_jump = []
         for chips in all_chips:
             colour = self.get_colour(chips)
             if colour == "red" or colour == "Kblue" or colour == "Kred":
                 double1 = self.check_double_move(chips, str(int(chips)-11))
                 double2 = self.check_double_move(chips, str(int(chips)+9))
-                #print(double1, double2)
                 if double1 or double2:
                     can_jump.append(chips)
             if colour == "blue" or colour == "Kblue" or colour == "Kred":
                 double1 = self.check_double_move(chips, str(int(chips)+11))
                 double2 = self.check_double_move(chips, str(int(chips)-9))
-                #print(double1, double2)
                 if double1 or double2:
                     can_jump.append(chips)
-        #print(double1, double2)
-        #print(can_jump)
+
         return can_jump
 
     def pos_double_jump(self, position):
@@ -163,7 +132,6 @@ class CheckersBoard:
                 potential_moves.append(double1)
             if double2 != False:
                 potential_moves.append(double2)
-        #print(position, self.check_bad_moves(potential_moves))
         return self.check_bad_moves(potential_moves)
 
     def check_double_move(self, initial_pos, new_pos):
@@ -175,7 +143,7 @@ class CheckersBoard:
                 return (str(int(new_pos) + move_dir))
         return False
     
-    # FIXME: change this to get 
+    # FIXME: optimise this
     def get_potential_moves(self, position):
         colour = self.get_colour(position)
         potential_moves = []
@@ -199,11 +167,6 @@ class CheckersBoard:
                         if colour[0] != "K":
                             double2 = False
                         pass
-            #if double1 == False and double2 == False:
-             #   potential_moves.append(int(position) + 11)
-             #   potential_moves.append(int(position) - 9)
-        #double1 = False
-        #double2 = False
         if colour == "red" or colour == "Kblue" or colour == "Kred":
             double1 = self.check_double_move(position, str(int(position)-11))
             double2 = self.check_double_move(position, str(int(position)+9))
@@ -283,8 +246,6 @@ class CheckersBoard:
             pos_to_eliminate = int(initial_pos) - (position_moved // 2)
             self.squares[str(pos_to_eliminate)] = False
             if len(self.get_potential_moves(new_pos)) > 0 and len(self.pos_double_jump(new_pos)) > 0:
-                #print(self.check_can_jump(self.get_colour(new_pos)))
-                #print("Cool")
                 return True
         return False
     
@@ -297,7 +258,6 @@ class CheckersBoard:
         if colour == "red" and position[1] == "1":
             self.squares[position] = "Kred"
 
-    #DEPRECATED
     def check_board(self):
         for k,v in self.squares.items():
             if v == "blue":
@@ -321,13 +281,10 @@ class CheckersBoard:
             if v == "blue" or v == "Kblue":
                 blue = True
         if red == True and blue == False:
-            #print("RED wins!")
             return 0
         if blue == True and red == False:
-            #print("BLUE wins!")
             return 1
         if self.is_stale_mate(colour) == True:
-            #print("Stale mate")
             return 2
     
     def no_moves(self, colour):
@@ -340,7 +297,6 @@ class CheckersBoard:
                 for other_pos in self.get_all_pos(other_colour) + self.get_all_pos("K" + other_colour):
                     if len(self.get_potential_moves(other_pos)) > 0:
                         return False
-        #print(True)
         return True
     
     def is_stale_mate(self, colour):
@@ -351,7 +307,6 @@ class CheckersBoard:
             if v == "blue" or v == "red":
                 stale_mate = False
         if stale_mate == True:
-            #print(stale_mate)
             return True
          
         
@@ -361,7 +316,6 @@ class CheckersBoard:
     def is_terminal(self, colour):
         game_status = self.is_game_over(colour)
         if game_status == 0 or game_status == 1 or game_status == 2:
-            #print("game over")
             return True
         return False
     
@@ -390,10 +344,6 @@ class CheckersBoard:
             for pos in can_jump:
                 if len(self.pos_double_jump(pos)) > 0:
                     valid_moves.append(pos)
-                # FIXME: DONE, check if any position that can jump can do it cleanly before any other moves
-                #if len(self.get_potential_moves(pos)) > 0:
-                    #print(pos)
-                #    valid_moves.append(pos)
         if len(valid_moves) == 0:
             for pos in all_team:
                 if len(self.get_potential_moves(pos)) > 0:
@@ -401,211 +351,3 @@ class CheckersBoard:
         
         return valid_moves
             
-        
-
-import math
-import random
-
-class Node:
-    def __init__(self, state, move=None, parent=None):
-        self.state = state
-        self.children = []
-        self.visits = 0
-        self.value = 0
-        self.parent = parent
-        self.move = move
-    
-    def get_state(self):
-        return self.state
-
-def select(node):
-    while node.children:
-        # Filter out child nodes with zero visits
-        non_zero_children = [child for child in node.children if child.visits != 0]
-
-        if non_zero_children:
-            # Select the child with the maximum value based on UCB1 formula
-            node = max(non_zero_children, key=lambda child: child.value / child.visits + math.sqrt(2 * math.log(node.visits) / child.visits))
-        else:
-            # All children have zero visits, break out of the loop or handle this case as needed
-            break
-
-    return node
-
-def expand(node, board):
-    new_board = node.state.copy()
-    moves = board.move_option("red")
-
-    for move in moves:
-        potential_moves = board.get_potential_moves(move)
-        for p_moves in potential_moves:
-            new_board = board.copy()
-            new_board.make_move(move, p_moves)
-            new_board.check_elimination(move, p_moves)
-            new_node = Node(new_board, move=[move, p_moves], parent=node)
-            node.children.append(new_node)
-
-    if node.children:
-        return random.choice(node.children)
-    else:
-        return None
-
-def get_best_move(original_board, mcts_result):
-    root_node = Node(original_board)  # Create a new root node for the original board
-    print(mcts_result)
-    root_node.children = mcts_result.children  # Set the children of the root node to the MCTS result children
-
-    # Find the child with the highest number of visits
-    best_child = max(root_node.children, key=lambda child: child.visits)
-    print(best_child)
-
-    return best_child.move  # The move attribute represents the best move
-
-
-
-# change this to play against a random player
-def simulate(node):
-    current_state = node.state.copy()  # Create a copy to avoid modifying the original state
-    turn = "blue"
-    last_move = None
-    while not current_state.is_terminal("red"):
-        #print("cool")
-        #print(current_state.display_board())
-        if last_move:
-            potential_moves = current_state.move_option(turn, last_move)
-        else:
-            potential_moves = current_state.move_option(turn)
-        last_move = None
-        if potential_moves:
-            random_pos = random.choice(potential_moves)
-            moves = current_state.get_potential_moves(random_pos)
-
-            if moves:
-                random_move = random.choice(moves)
-                current_state.make_move(random_pos, random_move)
-                if current_state.check_elimination(random_pos, random_move):
-                    last_move = random_move
-                    continue
-                else:
-                    if turn == "red":
-                        turn = "blue"
-                    else:
-                        turn = "red"
-    #print(current_state.get_result("red"))
-    return current_state.get_result("red")  # Return the final result after the playout
-
-# Implement this function
-
-def backpropagate(node, result):
-    while node:
-        node.visits += 1
-        node.value += result
-        node = node.parent
-
-def monte_carlo_tree_search(initial_state, iterations):
-    root = Node(initial_state)
-
-    for _ in range(iterations):
-        selected_node = select(root)
-        expanded_node = expand(selected_node)
-        if expanded_node:
-            simulation_result = simulate(expanded_node)
-            backpropagate(expanded_node, simulation_result)
-
-    best_child = max(root.children, key=lambda child: child.visits)
-    return best_child.move
-
-
-# Example usage:
-
-
-
-
-
-board = CheckersBoard()
-print(board)
-
-
-
-
-def play_against_mcts(board, mcts, iterations):
-    turn = "blue"
-    print(board.is_game_over(turn))
-    while board.is_game_over(turn) == None:
-        print(board.squares)
-        print("-------------------------------------------")
-        print(board.display_board())
-
-        if turn == "blue":
-            print("BLUES turn: ")
-            chip_to_move = input("Which chip do you want to move: ")
-            print(board.get_potential_moves(chip_to_move))
-            to_move = input("Where do you want to move the chip to: ")
-            board.make_move(chip_to_move, to_move)
-            if board.check_elimination(chip_to_move, to_move) == True:
-                turn = "blue"
-                continue
-            turn = "red"
-            print(board.display_board())
-        print(board.squares)
-        if board.is_game_over(turn) == None:
-            if turn == "red":
-                print("REDS turn (MCTS): ")
-                mcts_board = board.copy()  # Create a copy for MCTS
-                print(mcts_board)
-                result_state = mcts.monte_carlo_tree_search(mcts_board, iterations)
-                print(result_state)
-                # Apply the best move found by MCTS to the original board
-                print("huh")
-                board.make_move(str(result_state[0]), str(result_state[1]))
-                if board.check_elimination(str(result_state[0]), str(result_state[1])) == True:
-                    print("cool")
-                    turn = "red"
-                    continue
-                
-                turn = "blue"
-                print(turn)
-    print(board.is_game_over(turn))
-
-    print("Game Over")
-    print("-------------------------------------------")
-    print("Final Board:")
-    print(board.display_board())
-
-
-def play_against_random(board):
-    turn = "blue"
-    print(board.is_game_over(turn))
-    while board.is_game_over(turn) == None:
-        print("-------------------------------------------")
-        print(board.display_board())
-
-        if turn == "blue":
-            print("BLUES turn: ")
-            chip_to_move = input("Which chip do you want to move: ")
-            to_move = input("Where do you want to move the chip to: ")
-            board.make_move(chip_to_move, to_move)
-            if board.check_elimination(chip_to_move, to_move) == True:
-                turn = "blue"
-                continue
-            turn = "red"
-            print(board.display_board())
-
-        if turn == "red":
-            print("REDS turn: ")
-            random_player("blue", board)
-            turn = "blue"
-
-def random_vs_mcts(board):
-    pass
-
-# try with more iterations
-board = CheckersBoard()
-#play_against_mcts(board, iterations=5000)
-
-#play_against_random(board)
-
-#FIXME: Sometimes movable piceses cant move
-#FIXME: game is over when it is not
-
-# I am going to print the squares when there is an error
