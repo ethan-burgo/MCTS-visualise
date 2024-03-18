@@ -1,0 +1,1 @@
+Repository containing code that simulates a MCTS instance that can play checkers. The decision making process of the MCTS instance will be recorded in a DB where that data will be used to visualise the decsion making
