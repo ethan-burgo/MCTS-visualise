@@ -1,16 +1,19 @@
 import math
 import random
 import uuid
+from databasePostgres.dataConnect import Postgres
+from datetime import datetime
+from helpers import remove_str_list
 
 class Node:
-    def __init__(self, state, move=None, parent=None):
+    def __init__(self, state, move=0, parent=0):
         self.state = state
         self.children = []
         self.visits = 0
         self.value = 0
         self.parent = parent
         self.move = move
-        self.id = uuid.uuid4()
+        self.id = str(uuid.uuid4())[:8]
         self.parent_id = self.get_parent_id()
         self.chosen = 0
 
@@ -25,11 +28,33 @@ class Node:
     def get_parent_id(self):
         if self.parent:
             return self.parent.get_id()
+        return 0
+    def insert_baseline(self):
+        pass
+
+    def get_childern_id(self):
+        children_id = []
+        if len(self.children) > 0:
+            for child in self.children:
+                children_id.append(str(child.id))
+        return children_id
 
 class MCTS_Checkers:
-    def __init__(self, board):
+    def __init__(self, board, title):
         self.board = board
-        #self.start_time = 
+        self.title = title
+        self.start_time = datetime.now()
+        self.postgres_connect = Postgres()
+        self.id = str(uuid.uuid4())[:8]
+        self.create_execution_instance()
+
+    def create_execution_instance(self):
+        self.postgres_connect.insert_into_table("Execution", (self.id, self.title, str(self.start_time).split('.')[0], "0", "test"))
+    
+    def update_execution_instance(self):
+        end_time = datetime.now()
+        self.postgres_connect.update_record("Execution", self.id, {"endtime": str(end_time)})
+
         
     def select(self, node):
         while node.children:
@@ -47,9 +72,8 @@ class MCTS_Checkers:
 
     def expand(self, node, board):
         new_board = node.state
-        #print(node.move, node.get_id(), node.get_parent_id())
+        #TODO: insert new node?
         moves = new_board.move_option("red")
-
         for move in moves:
             potential_moves = board.get_potential_moves(move)
             for p_moves in potential_moves:
@@ -57,26 +81,18 @@ class MCTS_Checkers:
                 new_board.make_move(move, p_moves)
                 new_board.check_elimination(move, p_moves)
                 new_node = Node(new_board, move=[move, p_moves], parent=node)
-                #TODO: Insert node, state into database
-                
+                print(move)
+                self.postgres_connect.insert_into_table("Node", (new_node.id, new_node.get_parent_id(), self.id, new_node.chosen, remove_str_list(new_node.move), remove_str_list(new_node.get_childern_id()), new_node.value, new_node.visits))
+
+                # insert state records
                 node.children.append(new_node)
+                self.postgres_connect.update_record("Node", str(node.id), {"childern": remove_str_list(node.get_childern_id())})
+                #update node with childern values
 
         if node.children:
             return random.choice(node.children)
         else:
             return None
-
-    def get_best_move(self, original_board, mcts_result):
-        root_node = Node(original_board)  # Create a new root node for the original board
-        print(mcts_result)
-        root_node.children = mcts_result.children  # Set the children of the root node to the MCTS result children
-
-        # Find the child with the highest number of visits
-        best_child = max(root_node.children, key=lambda child: child.visits)
-        print(best_child)
-
-        return best_child.move  # The move attribute represents the best move
-
 
 
     # change this to play against a random player
@@ -115,10 +131,13 @@ class MCTS_Checkers:
         while node:
             node.visits += 1
             node.value += result
+            self.postgres_connect.update_record("Node", node.id, {"visits": node.visits, "value_": node.value})
             node = node.parent
 
     def monte_carlo_tree_search(self, initial_state, iterations):
         root = Node(initial_state)
+        #print(self.id)
+        self.postgres_connect.insert_into_table("Node", (root.id, root.get_parent_id(), self.id, root.chosen, remove_str_list(root.move), remove_str_list(root.get_childern_id()), root.value, root.visits))
 
         for _ in range(iterations):
             selected_node = self.select(root)
@@ -130,6 +149,6 @@ class MCTS_Checkers:
         best_child = max(root.children, key=lambda child: child.visits)
         best_child.set_chosen()
         print(best_child.get_id(), best_child.move, best_child.chosen)
-        # update node in database to set chosen to its value
+        self.postgres_connect.update_record("Node", best_child.id, {"chosen": 1})
         return best_child.move
-    
+

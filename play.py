@@ -1,6 +1,7 @@
 from checkersDefined import CheckersBoard
 from mcts import MCTS_Checkers
 import random
+import time
 
 def random_player(other_team, current_board, last_move=None):
     players = ["blue", "red"]
@@ -71,6 +72,7 @@ def play_against_mcts(board, mcts, iterations):
     print("-------------------------------------------")
     print("Final Board:")
     print(board.display_board())
+    mcts.update_execution_instance()
 
 
 def play_against_random(board):
@@ -97,5 +99,11 @@ def play_against_random(board):
             turn = "blue"
 
 board = CheckersBoard()
-mcts = MCTS_Checkers(board)
-play_against_mcts(board, mcts, 5)
+mcts = MCTS_Checkers(board, "test")
+time.sleep(3)
+play_against_mcts(board, mcts, 1)
+time.sleep(3)
+"""mcts.create_execution_instance()
+#mcts.postgres_connect.update_record("Execution", 12, {"title":"Updated", "resultdes": "testUpdated"})
+mcts.postgres_connect.simple_query()
+mcts.postgres_connect.close_connection()"""
