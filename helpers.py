@@ -1,3 +1,5 @@
+import json
+
 def remove_last_comma(input_string):
         last_comma_index = input_string.rfind(',')
         if last_comma_index != -1:
@@ -25,3 +27,5 @@ def remove_str_list(input_list):
          return "[]"
     return list_string
 
+def dump_json(dict):
+    return json.dumps(dict)

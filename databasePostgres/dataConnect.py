@@ -11,9 +11,9 @@ class Postgres:
         )
         self.cursor = self.connection.cursor()
         self.table_def = {  
-            "Execution": "id, title, starttime, endtime, resultdes",
-            "State_tb": "current_state, node_id",
-            "Node": "id, parent_id, execution_id, chosen, move_, childern, value_, visits"
+            "Execution": "exe_id, title, starttime, endtime, resultdes",
+            "State_tb": "current_state, node_id_s",
+            "Node": "node_id, parent_id, execution_id, chosen, move_, childern, value_, visits"
         }
 
     def simple_query(self):
@@ -40,7 +40,6 @@ class Postgres:
                     VALUES {values}""")
                 self.cursor.execute(insert_query)
                 self.connection.commit()
-
                 return f"{values} inserted successfully into {table}"
     
     def close_connection(self):
@@ -62,12 +61,12 @@ class Postgres:
             print("Error connecting to PostgreSQL:", e)
     
 
-    def update_record(self, table, record_id, values):
+    def update_record(self, table, record_id, values, id_name):
         update_string = format_update_statement(values)
         update_query = sql.SQL(f"""
             UPDATE "MCTS_visualise"."{table}"
             SET {update_string}
-            WHERE id = {format_id(record_id)}
+            WHERE {id_name} = {format_id(record_id)}
         """)
         try:
             self.cursor.execute(update_query, [*values.values(), format_id(record_id)])
@@ -77,4 +76,3 @@ class Postgres:
             return f"Error updating record: {e}"
 
 thing = Postgres()
-#thing.insert_into_table("execution", "(Test, 1, 1, tests)")

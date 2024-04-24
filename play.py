@@ -53,11 +53,9 @@ def play_against_mcts(board, mcts, iterations):
             if turn == "red":
                 print("REDS turn (MCTS): ")
                 mcts_board = board.copy()  # Create a copy for MCTS
-                print(mcts_board)
                 result_state = mcts.monte_carlo_tree_search(mcts_board, iterations)
                 print(result_state)
                 # Apply the best move found by MCTS to the original board
-                print("huh")
                 board.make_move(str(result_state[0]), str(result_state[1]))
                 if board.check_elimination(str(result_state[0]), str(result_state[1])) == True:
                     print("cool")
@@ -65,7 +63,6 @@ def play_against_mcts(board, mcts, iterations):
                     continue
                 
                 turn = "blue"
-                print(turn)
     print(board.is_game_over(turn))
 
     print("Game Over")
@@ -101,9 +98,5 @@ def play_against_random(board):
 board = CheckersBoard()
 mcts = MCTS_Checkers(board, "test")
 time.sleep(3)
-play_against_mcts(board, mcts, 1)
+play_against_mcts(board, mcts, 100)
 time.sleep(3)
-"""mcts.create_execution_instance()
-#mcts.postgres_connect.update_record("Execution", 12, {"title":"Updated", "resultdes": "testUpdated"})
-mcts.postgres_connect.simple_query()
-mcts.postgres_connect.close_connection()"""
