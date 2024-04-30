@@ -1,7 +1,7 @@
 +------------------------------------+
 |            Execution               |
 +------------------------------------+
-| id (PK)          VARCHAR(255)      |
+| exe_id (PK)      VARCHAR(255)      |
 | Title            VARCHAR(255)      |
 | StartTime        VARCHAR(255)      |
 | EndTime          VARCHAR(255)      |
@@ -11,7 +11,7 @@
 +------------------------------------+
 |            Node                    |
 +------------------------------------+
-| id (PK)          VARCHAR(255)      |
+| node_id (PK)     VARCHAR(255)      |
 | parent_id        VARCHAR(255)      |
 | execution_id     VARCHAR(255)      |
 | chosen           INT               |
@@ -20,16 +20,16 @@
 | value_           INT               |
 | visits           INT               |
 +------------------------------------+
-| FK: execution_id (Execution.id)    |
-| FK: parent_id (Node.id)            |
+| FK: execution_id (Execution.exe_id)|
+| FK: parent_id (Node.node_id)       |
 +------------------------------------+
 
 +------------------------------------+
 |            State_tb                |
 +------------------------------------+
-| id (PK)          SERIAL            |
+| state_id (PK)          SERIAL      |
 | current_state    JSON              |
 | node_id          VARCHAR(255)      |
 +------------------------------------+
-| FK: node_id (Node.id)              |
+| FK: node_id (Node.node_id)         |
 +------------------------------------+

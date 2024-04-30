@@ -33,7 +33,7 @@ REFERENCES "MCTS_visualise"."Node"(node_id);
 -- State table (STEP 4)
 CREATE TABLE "MCTS_visualise"."State_tb" (
 	state_id SERIAL PRIMARY KEY,
-	current_state JSON,
+	current_state JSONB,
     node_id_s VARCHAR(255),
     CONSTRAINT fk_node_id
 	FOREIGN KEY (node_id_s)
