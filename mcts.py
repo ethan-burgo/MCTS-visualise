@@ -20,6 +20,7 @@ class Node:
 
     def set_chosen(self):
         self.chosen = 1
+
     def get_state(self):
         return self.state
     
@@ -30,6 +31,7 @@ class Node:
         if self.parent:
             return self.parent.get_id()
         return 0
+    
     def insert_baseline(self):
         pass
 
@@ -50,7 +52,9 @@ class MCTS_Checkers:
         self.create_execution_instance()
 
     def create_execution_instance(self):
-        self.postgres_connect.insert_into_table("Execution", (self.id, self.title, str(self.start_time).split('.')[0], "0", "test"))
+        self.postgres_connect.insert_into_table("Execution", (self.id, self.title, str(self.start_time).split('.')[0], "0", self.title))
+        if not self.postgres_connect.check_if_record_exists("Node", "node_id", '0'):
+            self.postgres_connect.insert_into_table("Node", ('0', '0', self.id, 1, '0', '0', 0, 0)) 
     
     def update_execution_instance(self):
         end_time = datetime.now()
@@ -58,7 +62,7 @@ class MCTS_Checkers:
 
 
     def select(self, node, depth=None):
-        exploration_rate = 0.8
+        exploration_rate = 0.7
         count = 0
         while node.children:
             # Filter out child nodes with zero visits
@@ -75,15 +79,12 @@ class MCTS_Checkers:
                     # All children have zero visits, break out of the loop or handle this case as needed
                     break
             count += 1
-            #if count == depth:
-            #    break
 
         return node
 
 
     def expand(self, node, board):
         new_board = node.state
-        #TODO: insert new node?
         moves = new_board.move_option("red")
         for move in moves:
             potential_moves = board.get_potential_moves(move)
@@ -103,8 +104,6 @@ class MCTS_Checkers:
         else:
             return None
 
-
-    # change this to play against a random player
     def simulate(self, node):
         current_state = node.state.copy()  # Create a copy to avoid modifying the original state
         turn = "blue"
