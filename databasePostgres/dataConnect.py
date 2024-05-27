@@ -16,22 +16,6 @@ class Postgres:
             "Node": "node_id, parent_id, execution_id, chosen, move_, childern, value_, visits"
         }
 
-    def simple_query(self):
-        try:
-
-            self.cursor.execute('SELECT * FROM "MCTS_visualise"."Execution"')
-
-            # Fetch and print the query result
-            rows = self.cursor.fetchall()
-            for row in rows:
-                print(row)
-
-            self.cursor.close()
-            self.connection.close()
-
-        except psycopg2.Error as e:
-            print("Error connecting to PostgreSQL:", e)
-
     def insert_into_table(self, table, values):
         for k,v in self.table_def.items():
             if table == k:
@@ -48,12 +32,12 @@ class Postgres:
         except Exception as e:
             pass
     
-    def check_if_record_exists(self, table, id):
+    def check_if_record_exists(self, table, id_name, id):
         try:
-            self.cursor.execute(f'SELECT count(*) FROM "MCTS_visualise".{table} WHERE id={format_id(id)}')
+            self.cursor.execute(f'SELECT count(*) FROM "MCTS_visualise"."{table}" WHERE {id_name}={format_id(id)}')
             rows = self.cursor.fetchall()
             for row in rows:
-                if row["count(*)"] > 0:
+                if int(row[0]) > 0:
                     return True
             return False
 
@@ -75,4 +59,5 @@ class Postgres:
         except Exception as e:
             return f"Error updating record: {e}"
 
-thing = Postgres()
+    def initalise_exe(self):
+        pass

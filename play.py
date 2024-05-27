@@ -32,7 +32,7 @@ def play_against_mcts(board, mcts, iterations):
     print(board.is_game_over(turn))
     while board.is_game_over(turn) == None:
 
-        print(board.squares)
+        #print(board.squares)
         print("-------------------------------------------")
         print(board.display_board())
 
@@ -47,7 +47,7 @@ def play_against_mcts(board, mcts, iterations):
                 continue
             turn = "red"
             print(board.display_board())
-        print(board.squares)
+        #print(board.squares)
         if board.is_game_over(turn) == None:
             if turn == "red":
                 print("REDS turn (MCTS): ")
